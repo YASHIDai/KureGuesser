@@ -69,7 +69,8 @@
         guessMarker = new google.maps.Marker({
           position: event.latLng,
           map: map,
-          label: "予"
+          label: "予",
+          icon: "http://maps.google.com/mapfiles/ms/icons/green-dot.png"
         });
       });
 
@@ -112,7 +113,7 @@
         });
 
         map.panTo(selectedLocation);
-        map.setZoom(3);
+        map.setZoom(20);
 
         document.getElementById("result").innerText =
           `距離: ${distance.toFixed(2)} km\nスコア: ${score} 点`;
