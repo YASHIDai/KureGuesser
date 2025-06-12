@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>KureGuessr</title>
+  <title>小野浦Guessr</title>
   <style>
     body {
       font-family: sans-serif;
@@ -27,7 +27,7 @@
   </style>
 </head>
 <body>
-  <h1>KureGuessr</h1>
+  <h1>小野浦Guessr</h1>
   <div id="street-view"></div>
   <div id="guess-map"></div>
   <button id="submitGuess">ここに決定！</button>
@@ -60,8 +60,8 @@
       );
 
       map = new google.maps.Map(document.getElementById("guess-map"), {
-        center: { lat: 34.2486, lng: 132.5654 }, // 呉市の中心付近
-        zoom: 10
+        center: { lat: 34.17594, lng: 132.79889 }, // 豊浜市民センター
+        zoom: 15
       });
 
       map.addListener("click", (event) => {
@@ -112,8 +112,11 @@
           map: map
         });
 
-        map.panTo(selectedLocation);
-        map.setZoom(20);
+        // 2地点を含むズーム範囲に調整
+        const bounds = new google.maps.LatLngBounds();
+        bounds.extend(guessMarker.getPosition());
+        bounds.extend(selectedLocation);
+        map.fitBounds(bounds);
 
         document.getElementById("result").innerText =
           `距離: ${distance.toFixed(2)} km\nスコア: ${score} 点`;
