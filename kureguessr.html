@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>KureGuessr</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #street-view, #guess-map {
+      width: 90vw;
+      height: 50vh;
+      margin: 1rem 0;
+    }
+    #submitGuess {
+      padding: 10px 20px;
+      font-size: 1rem;
+    }
+    #result {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>KureGuessr</h1>
+  <div id="street-view"></div>
+  <div id="guess-map"></div>
+  <button id="submitGuess">ここに決定！</button>
+  <div id="result"></div>
+
+  <script>
+    const LOCATIONS = [
+      { lat: 35.6895, lng: 139.6917, name: "Tokyo" },
+      { lat: 48.8566, lng: 2.3522, name: "Paris" },
+      { lat: 40.7128, lng: -74.0060, name: "New York" },
+      { lat: -33.8688, lng: 151.2093, name: "Sydney" }
+    ];
+
+    let selectedLocation;
+    let guessMarker;
+    let correctMarker;
+    let line;
+    let map;
+    let panorama;
+
+    function initGame() {
+      selectedLocation = LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)];
+
+      panorama = new google.maps.StreetViewPanorama(
+        document.getElementById("street-view"), {
+          position: selectedLocation,
+          pov: { heading: 165, pitch: 0 },
+          zoom: 1
+        }
+      );
+
+      map = new google.maps.Map(document.getElementById("guess-map"), {
+        center: { lat: 0, lng: 0 },
+        zoom: 2
+      });
+
+      map.addListener("click", (event) => {
+        if (guessMarker) guessMarker.setMap(null);
+        guessMarker = new google.maps.Marker({
+          position: event.latLng,
+          map: map,
+          label: "予"
+        });
+      });
+
+      document.getElementById("submitGuess").addEventListener("click", () => {
+        if (!guessMarker) {
+          alert("予想地点を地図でクリックしてください！");
+          return;
+        }
+
+        const guessedLat = guessMarker.getPosition().lat();
+        const guessedLng = guessMarker.getPosition().lng();
+
+        const distance = calculateDistance(
+          guessedLat, guessedLng,
+          selectedLocation.lat, selectedLocation.lng
+        );
+
+        const score = calculateScore(distance);
+
+        // 正解地点表示
+        if (correctMarker) correctMarker.setMap(null);
+        correctMarker = new google.maps.Marker({
+          position: selectedLocation,
+          map: map,
+          label: "正"
+        });
+
+        // 線を描画
+        if (line) line.setMap(null);
+        line = new google.maps.Polyline({
+          path: [
+            guessMarker.getPosition(),
+            selectedLocation
+          ],
+          geodesic: true,
+          strokeColor: "#FF0000",
+          strokeOpacity: 1.0,
+          strokeWeight: 2,
+          map: map
+        });
+
+        map.panTo(selectedLocation);
+        map.setZoom(3);
+
+        document.getElementById("result").innerText =
+          `距離: ${distance.toFixed(2)} km\nスコア: ${score} 点`;
+      });
+    }
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const toRad = (deg) => deg * (Math.PI / 180);
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    function calculateScore(distance) {
+      // 距離によるスコアリング: 近いほど高得点（最大5000点）
+      if (distance < 0.5) return 5000;
+      if (distance < 2) return 4800;
+      if (distance < 10) return 4500;
+      if (distance < 50) return 4000;
+      if (distance < 100) return 3500;
+      if (distance < 500) return 2500;
+      if (distance < 1000) return 1500;
+      return Math.max(0, 1000 - Math.floor(distance));
+    }
+  </script>
+
+  <script async
+    src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initGame">
+  </script>
+</body>
+</html>
