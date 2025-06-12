@@ -61,7 +61,8 @@
 
       map = new google.maps.Map(document.getElementById("guess-map"), {
         center: { lat: 34.17594, lng: 132.79889 }, // 豊浜市民センター
-        zoom: 15
+        zoom: 15,
+        mapTypeId: 'satellite'
       });
 
       map.addListener("click", (event) => {
